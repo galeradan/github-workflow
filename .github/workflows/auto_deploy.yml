@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed] 
 
-concurrency: environment-${{ jobs.setup.outputs.environment }}
+concurrency: environment-${{ job.setup.outputs.environment }}
 
 jobs:
   setup:
@@ -13,7 +13,7 @@ jobs:
     outputs:
       environment: ${{ steps.get_parameter.outputs.environment }}
     steps:
-      
+
       - name: Checkout backend source
         uses: actions/checkout@v2
         with:
