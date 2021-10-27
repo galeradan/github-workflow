@@ -27,7 +27,7 @@ jobs:
           source=${{ github.head_ref }} # source branch
           target=${{ github.base_ref }} # target branch
           release_latest=$(git branch --all --list '*origin/release/20*' | sort -r | head -n 1 | cut -c18-)
-          group=${{ contains(github.base_ref, 'release/') && 'staging' || 'develop' }}
+          group=${{ startsWith(github.base_ref, 'release/') && 'staging' || 'develop' }}
 
           env=""
           hotfix="false"
