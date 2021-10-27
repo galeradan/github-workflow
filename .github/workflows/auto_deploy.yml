@@ -4,11 +4,63 @@ on:
   pull_request:
     types: [closed] 
 
+concurrency: environment-${{ contains(github.base_ref, 'release/') && 'staging' || 'develop' }}
+
 jobs:
-  run_tests:
+  setup:
+    runs-on: ubuntu-20.04
+    if: github.event.pull_request.merged == true
+    outputs:
+      environment: ${{ steps.get_parameter.outputs.environment }}
+    steps:
+
+      - name: Checkout backend source
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: "0"
+
+      - name: Get Target Parameter
+        id: get_parameter
+        run: |
+          set -e
+
+          source=${{ github.head_ref }} # source branch
+          target=${{ github.base_ref }} # target branch
+          release_latest=$(git branch --all --list '*origin/release/20*' | sort -r | head -n 1 | cut -c18-)
+
+          env=""
+          hotfix="false"
+
+          if [[ $target == $release_latest ]]; then
+            env="staging"
+          elif [[ $source == $release_latest && $target == "develop" ]]; then
+            env="uat"
+          elif [[ $source != $release_latest && $target == "develop" ]]; then
+            env="uat"
+            hotfix="true"
+          fi
+
+          echo "::set-output name=environment::$env"
+          echo "::set-output name=hotfix::$hotfix"
+          echo "value environment: $env"
+          echo "value release_latest: $release_latest"
+
+  deploy-staging:
+    needs: [setup]
+    if: needs.setup.outputs.environment == 'staging'
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - name: Run script file
       run: |
-         ./scripts/test.bash
+         ./scripts/staging.bash
+
+  deploy-uat:
+    needs: [setup]
+    if: needs.setup.outputs.environment == 'uat'
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run script file
+      run: |
+         ./scripts/uat.bash
