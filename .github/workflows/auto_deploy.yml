@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed] 
 
-concurrency: environment-${{ job.setup.outputs.environment }}
+concurrency: environment-${{ github.base_ref }}
 
 jobs:
   setup:
