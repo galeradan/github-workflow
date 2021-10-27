@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed] 
 
-concurrency: environment-${{ github.base_ref }}
+concurrency: environment-${{ ${{ contains(github.base_ref, 'release/') && 'staging' || 'develop' }} }}
 
 jobs:
   setup:
