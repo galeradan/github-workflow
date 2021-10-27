@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed] 
 
-concurrency: environment-${{ contains(github.base_ref, 'release/') && 'staging' || 'develop' }}
+concurrency: environment-${{ startsWith(github.base_ref, 'release/') && 'staging' || 'develop' }}
 
 jobs:
   setup:
@@ -27,6 +27,7 @@ jobs:
           source=${{ github.head_ref }} # source branch
           target=${{ github.base_ref }} # target branch
           release_latest=$(git branch --all --list '*origin/release/20*' | sort -r | head -n 1 | cut -c18-)
+          group=${{ startsWith(github.base_ref, 'release/') && 'staging' || startsWith(github.base_ref, 'develop') && 'develop' ||  github.head_ref}}
 
           env=""
           hotfix="false"
@@ -44,6 +45,7 @@ jobs:
           echo "::set-output name=hotfix::$hotfix"
           echo "value environment: $env"
           echo "value release_latest: $release_latest"
+          echo "concurrency-group: environment-$group"
 
   deploy-staging:
     needs: [setup]
